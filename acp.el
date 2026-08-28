@@ -525,7 +525,9 @@ When non-nil SYNC, send notification synchronously."
                                             read-text-file-capability
                                             write-text-file-capability
                                             elicitation-form-capability
-                                            elicitation-url-capability)
+                                            elicitation-url-capability
+                                            client-capabilities
+                                            meta)
   "Instantiate an \"initialize\" request.
 
 PROTOCOL-VERSION is the version of the ACP protocol to use.
@@ -539,6 +541,11 @@ ELICITATION-FORM-CAPABILITY is a boolean indicating if the client
 can render \"form\" elicitations.
 ELICITATION-URL-CAPABILITY is a boolean indicating if the client
 can render \"url\" elicitations.
+CLIENT-CAPABILITIES is an optional alist merged into
+`clientCapabilities' alongside `fs' -- e.g. `((subagents . ()))' to
+advertise support for ACP's draft subagent-session capability.
+META is an optional alist sent as the request's top-level `_meta',
+for extensions such as an agent's AIR capability negotiation.
 
 See https://agentclientprotocol.com/protocol/schema#initializerequest
 and https://agentclientprotocol.com/protocol/schema#initializeresponse."
@@ -560,7 +567,9 @@ and https://agentclientprotocol.com/protocol/schema#initializeresponse."
                                               . (,@(when elicitation-form-capability
                                                      '((form . nil)))
                                                  ,@(when elicitation-url-capability
-                                                     '((url . nil)))))))))))))
+                                                     '((url . nil)))))))
+                                       ,@client-capabilities))
+                ,@(when meta `((_meta . ,meta)))))))
 
 (cl-defun acp-make-authenticate-request (&key method-id method)
   "Instantiate an \"authenticate\" request.
