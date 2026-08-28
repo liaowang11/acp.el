@@ -166,6 +166,31 @@
       (should-not (buffer-live-p logs))
       (should-not (buffer-live-p traffic)))))
 
+(ert-deftest acp-test-make-initialize-request-defaults-to-fs-only-capabilities ()
+  "Test that omitting the new keywords leaves clientCapabilities unchanged."
+  (let ((request (acp-make-initialize-request :protocol-version 1)))
+    (should (equal (map-nested-elt request '(:params clientCapabilities))
+                   '((fs . ((readTextFile . :false)
+                            (writeTextFile . :false))))))
+    (should-not (map-nested-elt request '(:params _meta)))))
+
+(ert-deftest acp-test-make-initialize-request-merges-client-capabilities ()
+  "Test that CLIENT-CAPABILITIES entries land alongside `fs'."
+  (let* ((request (acp-make-initialize-request
+                   :protocol-version 1
+                   :client-capabilities '((subagents . ()))))
+         (capabilities (map-nested-elt request '(:params clientCapabilities))))
+    (should (assq 'fs capabilities))
+    (should (assq 'subagents capabilities))))
+
+(ert-deftest acp-test-make-initialize-request-sends-top-level-meta ()
+  "Test that META is sent as the request's top-level `_meta'."
+  (let ((request (acp-make-initialize-request
+                  :protocol-version 1
+                  :meta '((jetbrains . ((air . ((version . 1)))))))))
+    (should (equal (map-nested-elt request '(:params _meta jetbrains air version))
+                   1))))
+
 (provide 'acp-test)
 
 ;;; acp-test.el ends here

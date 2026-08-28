@@ -522,7 +522,9 @@ When non-nil SYNC, send notification synchronously."
 (cl-defun acp-make-initialize-request (&key protocol-version
                                             client-info
                                             read-text-file-capability
-                                            write-text-file-capability)
+                                            write-text-file-capability
+                                            client-capabilities
+                                            meta)
   "Instantiate an \"initialize\" request.
 
 PROTOCOL-VERSION is the version of the ACP protocol to use.
@@ -532,6 +534,11 @@ READ-TEXT-FILE-CAPABILITY is a boolean indicating if the client
 can read text files.
 WRITE-TEXT-FILE-CAPABILITY is a boolean indicating if the client
 can write text files.
+CLIENT-CAPABILITIES is an optional alist merged into
+`clientCapabilities' alongside `fs' -- e.g. `((subagents . ()))' to
+advertise support for ACP's draft subagent-session capability.
+META is an optional alist sent as the request's top-level `_meta',
+for extensions such as an agent's AIR capability negotiation.
 
 See https://agentclientprotocol.com/protocol/schema#initializerequest
 and https://agentclientprotocol.com/protocol/schema#initializeresponse."
@@ -546,7 +553,9 @@ and https://agentclientprotocol.com/protocol/schema#initializeresponse."
                                                                  :false))
                                               (writeTextFile . ,(if write-text-file-capability
                                                                     t
-                                                                  :false))))))))))
+                                                                  :false))))
+                                       ,@client-capabilities))
+                ,@(when meta `((_meta . ,meta)))))))
 
 (cl-defun acp-make-authenticate-request (&key method-id method)
   "Instantiate an \"authenticate\" request.
